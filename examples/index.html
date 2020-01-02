@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name='viewport'
+          content='width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no'/>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+    <script src='https://code.playcanvas.com/playcanvas-stable.js'></script>
+    <script src='../src/playcanvas-gltf.js'></script>
+</head>
+<body>
+
+<script type="text/javascript">
+    var canvas = document.createElement('canvas');
+    document.body.appendChild(canvas);
+
+    var app = new pc.Application(canvas, {});
+    app.start();
+
+    app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+    app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+    window.addEventListener('resize', function () {
+        app.resizeCanvas();
+    });
+
+    // Camera
+    var camera = new pc.Entity('camera');
+    camera.addComponent('camera', {
+        clearColor: [1, 1, 1]
+    });
+    camera.setLocalPosition(0, 0, 4);
+    camera.lookAt(0, 9, -10)
+    app.root.addChild(camera);
+
+
+    // Light
+    var light = new pc.Entity('light');
+    light.addComponent('light');
+    app.root.addChild(light);
+    light.setEulerAngles(45, 0, 45);
+
+
+    // Model
+    app.assets.loadFromUrl('assets/material/grass/26078382/grass.json', 'material', function (err, materialAsset) {
+
+        var modelURL2 = "assets/model/deer.json";
+        var entity2 = new pc.Entity();
+        this.app.assets.loadFromUrl(modelURL2, "model", function (err, asset) {
+
+            entity2.addComponent("model");
+            entity2.model.model = asset.resource;
+
+            var len = entity2.model.model.meshInstances.length;
+            for (var i = 0; i < len; i++) {
+                entity2.model.model.meshInstances[i].material = materialAsset.resource;
+            }
+
+            entity2.setLocalPosition(0, 0, 0);
+            entity2.setLocalScale(0.1, 0.1, 0.1);
+            pc.app.root.addChild(entity2);
+        });
+
+    });
+
+
+    // CubeMap
+    var hdr = {
+        name: 'white-dom',
+        ddsPath: 'assets/Helipad/Helipad.dds',
+        textures: [
+            'assets/Helipad/Helipad_posx.png',
+            'assets/Helipad/Helipad_negx.png',
+            'assets/Helipad/Helipad_posy.png',
+            'assets/Helipad/Helipad_negy.png',
+            'assets/Helipad/Helipad_posz.png',
+            'assets/Helipad/Helipad_negz.png',
+        ]
+    };
+
+    var textureAssets = [];
+    for (var i = 0; i < hdr.textures.length; i++) {
+        var asset = new this.pc.Asset(hdr.name + '-' + i, 'texture', {url: hdr.textures[i]});
+        app.assets.add(asset);
+        textureAssets.push(asset.id);
+    }
+
+    var cmap = new pc.Asset
+    (
+        hdr.name,
+        'cubemap',
+        {url: hdr.ddsPath},
+        {
+            anisotropy: 1,
+            magFilter: 1,
+            minFilter: 5,
+            rgbm: true,
+            textures: textureAssets,
+        }
+    );
+
+    app.scene.skyboxIntensity = Number(1);
+    app.scene.gammaCorrection = pc.GAMMA_SRGB; // 2.2
+    app.scene.toneMapping = pc.TONEMAP_ACES; // toneMapping same as editor
+    app.setSkybox(cmap);
+</script>
+</body>
+</html>
